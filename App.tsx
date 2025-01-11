@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FlatList, StatusBar } from "react-native";
+import { FlatList, StatusBar, Modal } from "react-native";
 import {
   TamaguiProvider,
   Button,
@@ -7,10 +7,12 @@ import {
   YStack,
   XStack,
   ScrollView,
+  Input,
 } from "tamagui";
 import { GestureHandlerRootView, Swipeable } from "react-native-gesture-handler";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import config from "./tamagui.config";
+import uuid from "react-native-uuid";
 
 interface ToDo {
   id: string;
@@ -19,7 +21,7 @@ interface ToDo {
   category: "business" | "personal";
 }
 
-const App = ({ navigation }: any) => {
+const App = () => {
   const [toDos, setToDos] = useState<ToDo[]>([
     { id: "1", title: "Daily meeting with team", completed: false, category: "business" },
     { id: "2", title: "Pay for rent", completed: true, category: "personal" },
@@ -27,6 +29,9 @@ const App = ({ navigation }: any) => {
     { id: "4", title: "Lunch with Emma", completed: false, category: "business" },
     { id: "5", title: "Meditation", completed: false, category: "personal" },
   ]);
+
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [newTask, setNewTask] = useState("");
 
   const toggleToDo = (id: string) => {
     setToDos(
@@ -174,7 +179,7 @@ const App = ({ navigation }: any) => {
 
           {/* Floating Add Button */}
           <Button
-            onPress={() => navigation.navigate("AddTask", { setToDos })}
+            onPress={() => {setModalVisible(true); setNewTask("");}}
             size="$6"
             position="absolute"
             bottom={100}
@@ -185,6 +190,162 @@ const App = ({ navigation }: any) => {
             <Icon name="add" size={50} color="white" />
           </Button>
         </YStack>
+
+        {/* Modal for Adding Task */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={isModalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <YStack flex={1} padding={20} backgroundColor="white">
+            {/* Header */}
+            <XStack justifyContent="flex-end" paddingTop={40} marginBottom={32}>
+              <Button
+                width={50} // Ensure the button is a perfect square
+                height={50} // Same value as width
+                borderRadius={30} // Half of the width/height for a perfect circle
+                borderColor="#eee" // Border color
+                borderWidth={2} // Border width
+                justifyContent="center" // Center content vertically
+                alignItems="center" // Center content horizontally
+                backgroundColor="transparent" // Transparent background
+                onPress={() => setModalVisible(false)} // Close modal on press
+              >
+                <Icon
+                  name="close"
+                  size={24}
+                  color="#000"
+                  style={{ alignSelf: 'center' }} // Ensure the icon itself aligns at the center
+                />
+              </Button>
+
+            </XStack>
+
+            {/* Task Input */}
+            <Input
+              marginLeft={50}
+              marginTop={100}
+              placeholder="Enter new task"
+              value={newTask}
+              onChangeText={setNewTask}
+              size="$8"
+              borderWidth={0}
+              backgroundColor="transparent"
+              fontSize={24}
+              placeholderTextColor="#999"
+            />
+
+            {/* Date Selector */}
+            <XStack space={12} marginTop={50} marginLeft={50}>
+              {/* Today Button */}
+              <Button
+                size="$4"
+                paddingHorizontal={16} // Add padding for proper spacing inside the button
+                paddingVertical={10} // Vertical padding for better height
+                backgroundColor="transparent"
+                borderWidth={2}
+                borderColor="#eee"
+                borderRadius={20}
+                flexDirection="row" // Ensure content is in a row
+                alignItems="center" // Center the icon and text
+              >
+                <Icon name="calendar-today" size={16} color="#666" />
+                <Text marginLeft={8} color="#666">
+                  Today
+                </Text>
+              </Button>
+
+              {/* Circle Icon */}
+              <Button
+                circular
+                size="$5" // Slightly larger size
+                backgroundColor="transparent"
+                borderWidth={2}
+                width={50}
+                height={50}
+                borderColor="#eee"
+                alignItems="center"
+                justifyContent="center" // Center the icon
+              >
+                <YStack
+                  width={25} // Outer circle diameter
+                  height={25}
+                  borderRadius={20} // Makes it a circle
+                  borderWidth={3} // Outer border width
+                  borderColor="#56a7e0" // Outer border color
+                  alignItems="center"
+                  justifyContent="center"
+                >
+                  <YStack
+                    width={14} // Inner circle diameter
+                    height={14}
+                    borderRadius={8} // Makes it a circle
+                    backgroundColor="#56a7e0" // Inner circle color
+                  />
+                </YStack>
+              </Button>
+            </XStack>
+
+
+            {/* Bottom Section */}
+            <YStack
+              position="absolute"
+              bottom={100}
+              left={0}
+              right={0}
+              padding={20}
+            >
+              {/* Action Icons */}
+              <XStack marginBottom={200} alignItems="center" justifyContent="center">
+                <Button circular backgroundColor="transparent" marginHorizontal={20}>
+                  <Icon name="add" size={24} color="#666" />
+                </Button>
+                <Button circular backgroundColor="transparent" marginHorizontal={20}>
+                  <Icon name="flag" size={24} color="#666" />
+                </Button>
+                <Button circular backgroundColor="transparent" marginHorizontal={20}>
+                  <Icon name="nightlight-round" size={24} color="#666" />
+                </Button>
+              </XStack>
+
+
+              {/* Add Button */}
+              <Button
+                width={180} // Fixed width
+                height={60} // Fixed height
+                backgroundColor="#4169e1"
+                borderRadius={30}
+                position="absolute" // Allows absolute positioning
+                bottom={30} // Distance from the bottom of the screen
+                right={20} // Distance from the right edge
+                justifyContent="center"
+                flexDirection="row" // Aligns text and icon in a row
+                alignItems="center"
+                onPress={() => {
+                  if (newTask.trim()) {
+                    setToDos((prevToDos: any) => [
+                      ...prevToDos,
+                      {
+                        id: uuid.v4(),
+                        title: newTask,
+                        completed: false,
+                        category: "business",
+                      },
+                    ]);
+                    setModalVisible(false);
+                  }
+                }}
+              >
+                <Text color="white" fontSize={14} marginRight={8} fontWeight={"bold"}>
+                  New task
+                </Text>
+                <Icon name="keyboard-arrow-up" size={24} color="white" />
+              </Button>
+
+            </YStack>
+          </YStack>
+        </Modal>
       </TamaguiProvider>
     </GestureHandlerRootView>
   );
